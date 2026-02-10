@@ -1,0 +1,119 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "./client"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+}
+
+//////////////////////
+// CATEGORIES
+//////////////////////
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  // products Product[]
+  products Product[] @relation("ProductCategories")
+}
+
+//////////////////////
+// PRODUCTS
+//////////////////////
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  userId     String
+  totalPrice Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  items OrderItem[]
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  slug          String   @unique
+  price         Decimal  @db.Decimal(10, 2)
+  originalPrice Decimal? @db.Decimal(10, 2)
+  image         String? // main image (product.image)
+  rating        Float    @default(0)
+  reviewsCount  Int      @default(0)
+  inStock       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // categoryId String
+  // category   Category @relation(fields: [categoryId], references: [id])
+
+  categories  Category[]  @relation("ProductCategories")
+
+  images     ProductImage[]
+  inventory  Inventory?
+  reviews    Review[]
+  orderItems OrderItem[]
+}
+
+//////////////////////
+// PRODUCT MULTIPLE IMAGES
+//////////////////////
+
+model ProductImage {
+  id        String @id @default(uuid())
+  url       String
+  productId String
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+//////////////////////
+// INVENTORY (Stock)
+//////////////////////
+
+model Inventory {
+  id        String   @id @default(uuid())
+  productId String   @unique
+  stock     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+//////////////////////
+// REVIEWS
+//////////////////////
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  userId    String
+  productId String
+
+  // user      User     @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
