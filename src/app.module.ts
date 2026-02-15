@@ -8,9 +8,10 @@ import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ConfigModule } from '@nestjs/config';
+import { CartModule } from './cart/cart.module';
 
 @Module({
-  imports: [AuthModule, CategoryModule, ProductModule, ReviewModule, PrismaModule, CloudinaryModule, ConfigModule.forRoot({isGlobal:true,  envFilePath: '.env',})],
+  imports: [AuthModule, CategoryModule, ProductModule, ReviewModule, PrismaModule, CloudinaryModule, ConfigModule.forRoot({isGlobal:true,  envFilePath: '.env',}), CartModule],
   controllers: [],
   providers: [],
 })

@@ -83,13 +83,34 @@ export class ProductService {
 
 
 
-    async getProducts(pagination: { skip: number, take: number }) {
+    async getProducts(pagination: { skip: number, take: number, categories: string[], minPrice: number, maxPrice: number }) {
         const result = await this.prisma.product.findMany({
             skip: pagination.skip,
             take: pagination.take,
             orderBy: {
                 createdAt: 'desc'
             },
+
+            where: {
+                AND: [
+                    pagination.categories.length
+                        ? {
+                            categories: {
+                                some: { name: { in: pagination.categories } },
+                            },
+                        }
+                        : {},
+                    {
+                        price: {
+                            gte: pagination.minPrice,
+                            lte: pagination.maxPrice,
+                        },
+                    },
+                ],
+            },
+
+
+
             select: {
                 id: true,
                 name: true,
@@ -101,7 +122,7 @@ export class ProductService {
                 slug: true,
                 categories: true,
                 inStock: true
-                
+
             }
         })
 

@@ -1,0 +1,137 @@
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class CartService {
+  constructor(private prisma: PrismaService) {}
+
+  //Get or Create Cart
+  async getOrCreateCart(userId: string) {
+    let cart = await this.prisma.cart.findFirst({
+      where: { userId },
+    });
+
+    if (!cart) {
+      cart = await this.prisma.cart.create({
+        data: { userId },
+      });
+    }
+
+    return cart;
+  }
+
+  // Add to Cart
+  async addToCart(userId: string, productId: string, quantity: number) {
+    if (quantity <= 0) {
+      throw new BadRequestException('Quantity must be greater than 0');
+    }
+
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: { inventory: true },
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+
+    if (!product.inStock || !product.inventory || product.inventory.stock < quantity) {
+      throw new BadRequestException('Not enough stock');
+    }
+
+    const cart = await this.getOrCreateCart(userId);
+
+    const existingItem = await this.prisma.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        productId,
+      },
+    });
+
+    // If already exists → increase quantity
+    if (existingItem) {
+      return this.prisma.cartItem.update({ 
+        where: { id: existingItem.id },
+        data: {
+          quantity: existingItem.quantity + quantity,
+        },
+      });
+    }
+
+    // Else create new item with snapshot
+    return this.prisma.cartItem.create({
+      data: {
+        cartId: cart.id,
+        productId,
+        quantity,
+        price: product.price,
+        productName: product.name,
+        image: product.image,
+      },
+    });
+  }
+
+  //  Get Cart with Items
+  async getCart(userId: string) {
+    const cart = await this.prisma.cart.findFirst({
+      where: { userId },
+      include: {
+        items: {
+          include :{
+            product:{
+              select:{
+                slug: true,
+              }
+            }
+          }
+        },
+        
+        
+      },
+    });
+
+    if (!cart) return { items: [], total: 0 };
+
+    const total = cart.items.reduce((sum, item) => {
+      return sum + Number(item.price) * item.quantity;
+    }, 0);
+
+    return { ...cart, total };
+  }
+
+  //  Remove item
+  async removeItem(userId: string, cartItemId: string) {
+    const cart = await this.getOrCreateCart(userId);
+
+    return this.prisma.cartItem.delete({
+      where: {
+        id: cartItemId,
+        cartId: cart.id,
+      },
+    });
+  }
+
+  //  Update quantity
+  async updateQuantity(userId: string, cartItemId: string, quantity: number) {
+    if (quantity <= 0) throw new BadRequestException('Invalid quantity');
+
+    const cart = await this.getOrCreateCart(userId);
+
+    return this.prisma.cartItem.update({
+      where: {
+        id: cartItemId,
+        cartId: cart.id,
+      },
+      data: { quantity },
+    });
+  }
+
+  //  Clear Cart
+  async clearCart(userId: string) {
+    const cart = await this.getOrCreateCart(userId);
+
+    await this.prisma.cartItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+
+    return { message: 'Cart cleared' };
+  }
+}

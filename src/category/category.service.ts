@@ -24,7 +24,20 @@ export class CategoryService {
     }
 
     async getAllCategories() {
-        return this.prisma.category.findMany();
+        const prices = await this.prisma.product.aggregate({
+            _max: {
+                price: true
+            },
+            _min: {
+                price: true
+            }
+        })
+        const categories = await this.prisma.category.findMany();
+        return {
+            minPrice: prices._min.price ?? 0,
+            maxPrice: prices._max.price ?? 0,
+            categories 
+        }
     }
 
     async getCategoryById(id: string) {
