@@ -81,9 +81,7 @@ export class ProductService {
     }
 
 
-
-
-    async getProducts(pagination: { skip: number, take: number, categories: string[], minPrice: number, maxPrice: number }) {
+    async getProducts(pagination: { skip: number, take: number, categories: string[], minPrice: number, maxPrice: number | undefined}) {
         const result = await this.prisma.product.findMany({
             skip: pagination.skip,
             take: pagination.take,
@@ -103,7 +101,8 @@ export class ProductService {
                     {
                         price: {
                             gte: pagination.minPrice,
-                            lte: pagination.maxPrice,
+                            // lte: pagination.maxPrice,
+                            ...(pagination.maxPrice !== undefined && { lte: pagination.maxPrice }),
                         },
                     },
                 ],

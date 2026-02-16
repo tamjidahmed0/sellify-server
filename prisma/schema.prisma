@@ -22,8 +22,8 @@ model Category {
   id        String   @id @default(uuid())
   name      String   @unique
   createdAt DateTime @default(now())
+  image     String?
 
-  // products Product[]
   products Product[] @relation("ProductCategories")
 }
 
@@ -139,10 +139,9 @@ model CartItem {
   productId String
   quantity  Int
 
-
   price       Decimal @db.Decimal(10, 2)
   productName String
-  image      String?
+  image       String?
 
   cart    Cart    @relation(fields: [cartId], references: [id])
   product Product @relation(fields: [productId], references: [id])

@@ -45,7 +45,7 @@ export class ProductController {
     async getProducts(
         @Query('skip') skip?: string,
         @Query('take') take?: string,
-        @Query('categories') categories?: string | string[],
+        @Query('category') categories?: string | string[],
         @Query('minPrice') minPrice?: string,
         @Query('maxPrice') maxPrice?: string,
     ) {
@@ -65,7 +65,7 @@ export class ProductController {
             take: take ? parseInt(take, 10) : 20, // default 20
             categories: categoryArray,
             minPrice: minPrice ? parseInt(minPrice, 10) : 0,
-            maxPrice: maxPrice ? parseInt(maxPrice, 10) : 0,
+            maxPrice: maxPrice ? parseInt(maxPrice, 10) : undefined,
         });
     }
 
