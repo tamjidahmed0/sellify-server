@@ -129,7 +129,6 @@ export const ProductScalarFieldEnum = {
   image: 'image',
   rating: 'rating',
   reviewsCount: 'reviewsCount',
-  inStock: 'inStock',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

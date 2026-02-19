@@ -14,6 +14,9 @@ export class ProductService {
 
     ) { }
 
+
+    // Create Product with image upload, slug generation, and inventory creation
+
     async createProduct(files: {
         thumbnail: Express.Multer.File[];
         images?: Express.Multer.File[];
@@ -81,13 +84,16 @@ export class ProductService {
     }
 
 
-    async getProducts(pagination: { skip: number, take: number, categories: string[], minPrice: number, maxPrice: number | undefined}) {
+    // Get Products with pagination, filtering by category and price range
+
+    async getProducts(pagination: { skip: number, take: number, categories: string[], minPrice: number, maxPrice: number | undefined }) {
         const result = await this.prisma.product.findMany({
             skip: pagination.skip,
             take: pagination.take,
             orderBy: {
                 createdAt: 'desc'
             },
+
 
             where: {
                 AND: [
@@ -101,7 +107,6 @@ export class ProductService {
                     {
                         price: {
                             gte: pagination.minPrice,
-                            // lte: pagination.maxPrice,
                             ...(pagination.maxPrice !== undefined && { lte: pagination.maxPrice }),
                         },
                     },
@@ -120,16 +125,41 @@ export class ProductService {
                 reviewsCount: true,
                 slug: true,
                 categories: true,
-                inStock: true
+                inventory: {
+                    select: {
+                        stock: true
+                    }
+                }
 
             }
         })
 
-        return result
+
+
+
+        return result.map((product) => {
+            const stock = product.inventory?.stock ?? 0;
+
+            return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                originalPrice: product.originalPrice,
+                image: product.image,
+                rating: product.rating,
+                reviewsCount: product.reviewsCount,
+                slug: product.slug,
+                categories: product.categories,
+                inStock: stock > 0,
+            };
+        });
+
+
 
     }
 
 
+    //get product by slug
     async getProductBySlug(slug: string) {
 
         const result = await this.prisma.product.findUnique({
@@ -138,11 +168,24 @@ export class ProductService {
             },
             include: {
                 categories: true,
-                images: true
+                images: true,
+                inventory: {
+                    select: {
+                        stock: true
+                    }
+                }
             }
         })
 
-        return result
+        if (!result) return null;
+        const stock = result.inventory?.stock ?? 0;
+
+
+        return {
+            ...result,
+            inStock: stock > 0,
+            inventory: undefined,
+        };
     }
 
 

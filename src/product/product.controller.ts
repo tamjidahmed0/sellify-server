@@ -6,7 +6,11 @@ import { memoryStorage } from 'multer';
 
 @Controller('product')
 export class ProductController {
+
     constructor(private product: ProductService) { }
+
+
+    // Create Product with image upload, slug generation, and inventory creation
 
     @Post('create')
     @UseInterceptors(
@@ -25,6 +29,7 @@ export class ProductController {
             },
         }),
     )
+
     async createProduct(
         @UploadedFiles() files: {
             thumbnail: Express.Multer.File[];
@@ -40,6 +45,8 @@ export class ProductController {
         return this.product.createProduct(files, createProductDto);
     }
 
+
+    // Get Products with pagination, filtering, and sorting
 
     @Get()
     async getProducts(
@@ -58,7 +65,7 @@ export class ProductController {
             : [];
 
 
-     
+
 
         return this.product.getProducts({
             skip: skip ? parseInt(skip, 10) : 0,
@@ -69,6 +76,8 @@ export class ProductController {
         });
     }
 
+
+    // Get Product by Slug with details and related products
 
     @Get(':slug')
     async getProductBySlug(@Param('slug') slug: string) {

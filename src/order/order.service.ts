@@ -69,6 +69,21 @@ export class OrderService {
                 });
             }
 
+            //6. Out of stock check parallel
+            // await Promise.all(
+            //     dto.items.map(async (item) => {
+            //         const inventory = await prisma.inventory.findUnique({
+            //             where: { productId: item.productId },
+            //         });
+            //         if (inventory && inventory.stock <= 0) {
+            //             await prisma.product.update({
+            //                 where: { id: item.productId },
+            //                 data: { inStock: false },
+            //             });
+            //         }
+            //     })
+            // );
+
             return order;
         }, {
             maxWait: 10000,

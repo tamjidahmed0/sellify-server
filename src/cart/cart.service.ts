@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CartService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   //Get or Create Cart
   async getOrCreateCart(userId: string) {
@@ -28,12 +28,16 @@ export class CartService {
 
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
-      include: { inventory: true },
+      include: {
+        inventory: {
+          select: { stock: true }
+        }
+      },
     });
 
     if (!product) throw new NotFoundException('Product not found');
 
-    if (!product.inStock || !product.inventory || product.inventory.stock < quantity) {
+    if (!product.inventory || product.inventory.stock < quantity) {
       throw new BadRequestException('Not enough stock');
     }
 
@@ -46,9 +50,12 @@ export class CartService {
       },
     });
 
-    // If already exists → increase quantity
+    // If already exists increase quantity
     if (existingItem) {
-      return this.prisma.cartItem.update({ 
+      if (existingItem.quantity + quantity > product.inventory.stock) {
+        throw new BadRequestException('Not enough stock');
+      }
+      return this.prisma.cartItem.update({
         where: { id: existingItem.id },
         data: {
           quantity: existingItem.quantity + quantity,
@@ -75,16 +82,16 @@ export class CartService {
       where: { userId },
       include: {
         items: {
-          include :{
-            product:{
-              select:{
+          include: {
+            product: {
+              select: {
                 slug: true,
               }
             }
           }
         },
-        
-        
+
+
       },
     });
 
@@ -115,13 +122,40 @@ export class CartService {
 
     const cart = await this.getOrCreateCart(userId);
 
-    return this.prisma.cartItem.update({
+    // Find cart item
+    const cartItem = await this.prisma.cartItem.findFirst({
       where: {
         id: cartItemId,
         cartId: cart.id,
       },
+    });
+
+    if (!cartItem) {
+      throw new BadRequestException('Cart item not found');
+    }
+
+
+    // Check inventory stock
+    const inventory = await this.prisma.inventory.findUnique({
+      where: { productId: cartItem.productId },
+      select: { stock: true },
+    });
+
+    if (!inventory || inventory.stock < quantity) {
+      throw new BadRequestException(
+        `Only ${inventory?.stock ?? 0} items available in stock`
+      );
+    }
+
+
+    // Update quantity
+    return this.prisma.cartItem.update({
+      where: { id: cartItemId },
       data: { quantity },
     });
+
+
+
   }
 
   //  Clear Cart
