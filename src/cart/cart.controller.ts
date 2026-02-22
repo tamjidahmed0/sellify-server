@@ -1,6 +1,9 @@
-import { Controller, Get, Post, Body, Delete, Patch, Req, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Patch, Req, Param, UseGuards } from '@nestjs/common';
 import { CartService } from './cart.service';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 
+
+@UseGuards(JwtAuthGuard)
 @Controller('cart')
 export class CartController {
   constructor(private readonly cartService: CartService) { }
@@ -8,7 +11,8 @@ export class CartController {
   //  Get Cart 
   @Get()
   getCart(@Req() req) {
-    return this.cartService.getCart('1');
+    console.log(req.user)
+    return this.cartService.getCart(req.user.id);
   }
 
   //  Add to Cart
@@ -18,7 +22,7 @@ export class CartController {
     @Body() body: { productId: string; quantity: number },
   ) {
     return this.cartService.addToCart(
-      '1',
+      req.user.id,
       body.productId,
       body.quantity,
     );
@@ -28,7 +32,7 @@ export class CartController {
   @Delete('remove/:id')
   removeItem(@Req() req, @Param('id') cartItemId: string) {
     console.log(cartItemId)
-    return this.cartService.removeItem('1', cartItemId);
+    return this.cartService.removeItem(req.user.id, cartItemId);
   }
 
   //  Update quantity
@@ -39,7 +43,7 @@ export class CartController {
   ) {
     return this.cartService.updateQuantity(
       // req.user.id,
-      '1',
+      req.user.id,
       body.cartItemId,
       body.quantity,
     );

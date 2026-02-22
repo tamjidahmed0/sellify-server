@@ -300,14 +300,6 @@ export type CategoryOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type CategoryCreateNestedManyWithoutProductsInput = {
   create?: Prisma.XOR<Prisma.CategoryCreateWithoutProductsInput, Prisma.CategoryUncheckedCreateWithoutProductsInput> | Prisma.CategoryCreateWithoutProductsInput[] | Prisma.CategoryUncheckedCreateWithoutProductsInput[]
   connectOrCreate?: Prisma.CategoryCreateOrConnectWithoutProductsInput | Prisma.CategoryCreateOrConnectWithoutProductsInput[]
