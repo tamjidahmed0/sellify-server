@@ -7,10 +7,11 @@ import Decimal from 'decimal.js';
 export class OrderService {
     constructor(private prisma: PrismaService) { }
 
-    async createOrder(dto: CreateOrderDto) {
+    async createOrder(dto: CreateOrderDto, id:string) {
         if (!dto.items || dto.items.length === 0) {
             throw new BadRequestException('Order must contain at least one item');
         }
+
 
         const productIds = dto.items.map(item => item.productId);
 
@@ -54,7 +55,7 @@ export class OrderService {
             // 4. Create order
             const order = await prisma.order.create({
                 data: {
-                    userId: dto.userId,
+                    userId: id,
                     totalPrice: totalPrice.toFixed(2),
                     items: { create: orderItemsData },
                 },
@@ -62,7 +63,7 @@ export class OrderService {
             });
 
             // 5. Cart clear 
-            const cart = await prisma.cart.findFirst({ where: { userId: dto.userId } });
+            const cart = await prisma.cart.findFirst({ where: { userId: id } });
             if (cart) {
                 await prisma.cartItem.deleteMany({
                     where: { cartId: cart.id, productId: { in: productIds } },

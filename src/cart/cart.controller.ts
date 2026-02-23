@@ -31,7 +31,6 @@ export class CartController {
   //  Remove item
   @Delete('remove/:id')
   removeItem(@Req() req, @Param('id') cartItemId: string) {
-    console.log(cartItemId)
     return this.cartService.removeItem(req.user.id, cartItemId);
   }
 
@@ -42,7 +41,6 @@ export class CartController {
     @Body() body: { cartItemId: string; quantity: number },
   ) {
     return this.cartService.updateQuantity(
-      // req.user.id,
       req.user.id,
       body.cartItemId,
       body.quantity,
