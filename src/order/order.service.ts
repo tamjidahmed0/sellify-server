@@ -1,19 +1,17 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrderDto } from './dto/order.dto';
 import Decimal from 'decimal.js';
 
 @Injectable()
 export class OrderService {
     constructor(private prisma: PrismaService) { }
 
-    async createOrder(dto: CreateOrderDto, id:string) {
-        if (!dto.items || dto.items.length === 0) {
+    async createOrder(productIds: string[], userId: string) {
+        console.log(productIds, 'productIds');
+
+        if (!productIds || productIds.length === 0) {
             throw new BadRequestException('Order must contain at least one item');
         }
-
-
-        const productIds = dto.items.map(item => item.productId);
 
         return this.prisma.$transaction(async (prisma) => {
             // 1. Get products
@@ -22,32 +20,32 @@ export class OrderService {
                 include: { inventory: true },
             });
 
-            if (products.length !== dto.items.length) {
+            if (products.length !== productIds.length) {
                 throw new BadRequestException('Some products not found');
             }
 
-            // 2. Calculate total price & prepare data
+            // 2. Calculate total price
             let totalPrice = new Decimal(0);
             const orderItemsData: { productId: string; quantity: number; price: Decimal }[] = [];
 
-            for (const item of dto.items) {
-                const product = products.find(p => p.id === item.productId);
+            for (const productId of productIds) {
+                const product = products.find(p => p.id === productId);
                 if (!product) throw new BadRequestException('Product not found');
-                if (!product.inventory || product.inventory.stock < item.quantity) {
+                if (!product.inventory || product.inventory.stock < 1) {
                     throw new BadRequestException(`Not enough stock for ${product.name}`);
                 }
 
                 const price = new Decimal(product.price.toString());
-                totalPrice = totalPrice.plus(price.times(item.quantity));
-                orderItemsData.push({ productId: item.productId, quantity: item.quantity, price });
+                totalPrice = totalPrice.plus(price.times(1));
+                orderItemsData.push({ productId, quantity: 1, price });
             }
 
-            // 3. Inventory deduct parallel
+            // 3. Inventory deduct
             await Promise.all(
-                dto.items.map(item =>
+                productIds.map(productId =>
                     prisma.inventory.update({
-                        where: { productId: item.productId },
-                        data: { stock: { decrement: item.quantity } },
+                        where: { productId },
+                        data: { stock: { decrement: 1 } },
                     })
                 )
             );
@@ -55,15 +53,15 @@ export class OrderService {
             // 4. Create order
             const order = await prisma.order.create({
                 data: {
-                    userId: id,
+                    userId,
                     totalPrice: totalPrice.toFixed(2),
                     items: { create: orderItemsData },
                 },
                 include: { items: true },
             });
 
-            // 5. Cart clear 
-            const cart = await prisma.cart.findFirst({ where: { userId: id } });
+            // 5. Cart clear
+            const cart = await prisma.cart.findFirst({ where: { userId } });
             if (cart) {
                 await prisma.cartItem.deleteMany({
                     where: { cartId: cart.id, productId: { in: productIds } },
@@ -76,6 +74,11 @@ export class OrderService {
             timeout: 20000,
         });
     }
+
+
+
+
+
 
 
 
