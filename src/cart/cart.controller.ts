@@ -11,7 +11,6 @@ export class CartController {
   //  Get Cart 
   @Get()
   getCart(@Req() req) {
-    console.log(req.user)
     return this.cartService.getCart(req.user.id);
   }
 

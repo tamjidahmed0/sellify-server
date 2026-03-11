@@ -6,15 +6,24 @@ import Decimal from 'decimal.js';
 export class OrderService {
     constructor(private prisma: PrismaService) { }
 
+    //  Get Orders By User 
     async createOrder(productIds: string[], userId: string) {
-        console.log(productIds, 'productIds');
-
         if (!productIds || productIds.length === 0) {
             throw new BadRequestException('Order must contain at least one item');
         }
 
         return this.prisma.$transaction(async (prisma) => {
-            // 1. Get products
+            // 1. Get cart actual quantity 
+            const cart = await prisma.cart.findFirst({
+                where: { userId },
+                include: {
+                    items: {
+                        where: { productId: { in: productIds } },
+                    },
+                },
+            });
+
+            // 2. Products + inventory
             const products = await prisma.product.findMany({
                 where: { id: { in: productIds } },
                 include: { inventory: true },
@@ -24,33 +33,44 @@ export class OrderService {
                 throw new BadRequestException('Some products not found');
             }
 
-            // 2. Calculate total price
+            // 3. Calculate total — cart quantity 
             let totalPrice = new Decimal(0);
-            const orderItemsData: { productId: string; quantity: number; price: Decimal }[] = [];
+            const orderItemsData: {
+                productId: string;
+                quantity: number;
+                price: Decimal;
+            }[] = [];
 
             for (const productId of productIds) {
-                const product = products.find(p => p.id === productId);
+                const product = products.find((p) => p.id === productId);
                 if (!product) throw new BadRequestException('Product not found');
-                if (!product.inventory || product.inventory.stock < 1) {
-                    throw new BadRequestException(`Not enough stock for ${product.name}`);
+
+                // Get quantity from cart if nothing then 1
+                const cartItem = cart?.items.find((i) => i.productId === productId);
+                const quantity = cartItem?.quantity ?? 1;
+
+                if (!product.inventory || product.inventory.stock < quantity) {
+                    throw new BadRequestException(
+                        `Not enough stock for ${product.name}`
+                    );
                 }
 
                 const price = new Decimal(product.price.toString());
-                totalPrice = totalPrice.plus(price.times(1));
-                orderItemsData.push({ productId, quantity: 1, price });
+                totalPrice = totalPrice.plus(price.times(quantity));
+                orderItemsData.push({ productId, quantity, price });
             }
 
-            // 3. Inventory deduct
+            // 4. Inventory deduct — quantity
             await Promise.all(
-                productIds.map(productId =>
+                orderItemsData.map(({ productId, quantity }) =>
                     prisma.inventory.update({
                         where: { productId },
-                        data: { stock: { decrement: 1 } },
+                        data: { stock: { decrement: quantity } },
                     })
                 )
             );
 
-            // 4. Create order
+            // 5. Order create
             const order = await prisma.order.create({
                 data: {
                     userId,
@@ -60,12 +80,16 @@ export class OrderService {
                 include: { items: true },
             });
 
-            // 5. Cart clear
-            const cart = await prisma.cart.findFirst({ where: { userId } });
+            // 6. Cart items clear
             if (cart) {
                 await prisma.cartItem.deleteMany({
-                    where: { cartId: cart.id, productId: { in: productIds } },
+                    where: {
+                        cartId: cart.id,
+                        productId: { in: productIds },
+                    },
                 });
+
+                await prisma.cart.delete({ where: { id: cart.id } });
             }
 
             return order;
@@ -75,6 +99,91 @@ export class OrderService {
         });
     }
 
+
+
+    // async findOrdersByUser(userId: string, page = 1, limit = 10) {
+    //     const skip = (page - 1) * limit;
+
+    //     const [orders, total] = await Promise.all([
+    //         this.prisma.order.findMany({
+    //             where: { userId },
+    //             skip,
+    //             take: limit,
+    //             orderBy: { createdAt: 'desc' },
+    //             include: {
+    //                 items: {
+    //                     include: {
+    //                         product: {
+    //                             select: { id: true, name: true, image: true, slug: true },
+    //                         },
+    //                     },
+    //                 },
+    //             },
+    //         }),
+    //         this.prisma.order.count({ where: { userId } }),
+    //     ]);
+
+    //     return {
+    //         data: orders,
+    //         meta: {
+    //             total,
+    //             page,
+    //             limit,
+    //             totalPages: Math.ceil(total / limit),
+    //         },
+    //     };
+    // }
+
+
+    async findOrdersByUser(userId: string, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+
+        const [orders, total] = await Promise.all([
+            this.prisma.order.findMany({
+                where: { userId },
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    items: {
+                        include: {
+                            product: {
+                                select: { id: true, name: true, image: true, slug: true },
+                            },
+                        },
+                    },
+                },
+            }),
+            this.prisma.order.count({ where: { userId } }),
+        ]);
+
+        // User review fetch
+        const reviewedProductIds = await this.prisma.review.findMany({
+            where: { userId },
+            select: { productId: true },
+        });
+
+        const reviewedSet = new Set(reviewedProductIds.map((r) => r.productId));
+
+        // item hasReviewed flag 
+        const ordersWithReviewStatus = orders.map((order) => ({
+            ...order,
+            items: order.items.map((item) => ({
+                ...item,
+                hasReviewed: reviewedSet.has(item.productId),
+            })),
+        }));
+
+        return {
+            data: ordersWithReviewStatus,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
 
 
 

@@ -39,6 +39,7 @@ export type OrderMinAggregateOutputType = {
   userId: string | null
   totalPrice: runtime.Decimal | null
   createdAt: Date | null
+  status: $Enums.OrderStatus | null
 }
 
 export type OrderMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type OrderMaxAggregateOutputType = {
   userId: string | null
   totalPrice: runtime.Decimal | null
   createdAt: Date | null
+  status: $Enums.OrderStatus | null
 }
 
 export type OrderCountAggregateOutputType = {
@@ -53,6 +55,7 @@ export type OrderCountAggregateOutputType = {
   userId: number
   totalPrice: number
   createdAt: number
+  status: number
   _all: number
 }
 
@@ -70,6 +73,7 @@ export type OrderMinAggregateInputType = {
   userId?: true
   totalPrice?: true
   createdAt?: true
+  status?: true
 }
 
 export type OrderMaxAggregateInputType = {
@@ -77,6 +81,7 @@ export type OrderMaxAggregateInputType = {
   userId?: true
   totalPrice?: true
   createdAt?: true
+  status?: true
 }
 
 export type OrderCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type OrderCountAggregateInputType = {
   userId?: true
   totalPrice?: true
   createdAt?: true
+  status?: true
   _all?: true
 }
 
@@ -178,6 +184,7 @@ export type OrderGroupByOutputType = {
   userId: string
   totalPrice: runtime.Decimal
   createdAt: Date
+  status: $Enums.OrderStatus
   _count: OrderCountAggregateOutputType | null
   _avg: OrderAvgAggregateOutputType | null
   _sum: OrderSumAggregateOutputType | null
@@ -208,6 +215,7 @@ export type OrderWhereInput = {
   userId?: Prisma.StringFilter<"Order"> | string
   totalPrice?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   items?: Prisma.OrderItemListRelationFilter
 }
 
@@ -216,6 +224,7 @@ export type OrderOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   items?: Prisma.OrderItemOrderByRelationAggregateInput
 }
 
@@ -227,6 +236,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringFilter<"Order"> | string
   totalPrice?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   items?: Prisma.OrderItemListRelationFilter
 }, "id">
 
@@ -235,6 +245,7 @@ export type OrderOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
   _avg?: Prisma.OrderAvgOrderByAggregateInput
   _max?: Prisma.OrderMaxOrderByAggregateInput
@@ -250,6 +261,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringWithAggregatesFilter<"Order"> | string
   totalPrice?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
+  status?: Prisma.EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
 }
 
 export type OrderCreateInput = {
@@ -257,6 +269,7 @@ export type OrderCreateInput = {
   userId: string
   totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
+  status?: $Enums.OrderStatus
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
 }
 
@@ -265,6 +278,7 @@ export type OrderUncheckedCreateInput = {
   userId: string
   totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
+  status?: $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -273,6 +287,7 @@ export type OrderUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
 }
 
@@ -281,6 +296,7 @@ export type OrderUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -289,6 +305,7 @@ export type OrderCreateManyInput = {
   userId: string
   totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
+  status?: $Enums.OrderStatus
 }
 
 export type OrderUpdateManyMutationInput = {
@@ -296,6 +313,7 @@ export type OrderUpdateManyMutationInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
 export type OrderUncheckedUpdateManyInput = {
@@ -303,6 +321,7 @@ export type OrderUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
 export type OrderScalarRelationFilter = {
@@ -315,6 +334,7 @@ export type OrderCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
 }
 
 export type OrderAvgOrderByAggregateInput = {
@@ -326,6 +346,7 @@ export type OrderMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
 }
 
 export type OrderMinOrderByAggregateInput = {
@@ -333,6 +354,7 @@ export type OrderMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
 }
 
 export type OrderSumOrderByAggregateInput = {
@@ -353,11 +375,16 @@ export type OrderUpdateOneRequiredWithoutItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutItemsInput, Prisma.OrderUpdateWithoutItemsInput>, Prisma.OrderUncheckedUpdateWithoutItemsInput>
 }
 
+export type EnumOrderStatusFieldUpdateOperationsInput = {
+  set?: $Enums.OrderStatus
+}
+
 export type OrderCreateWithoutItemsInput = {
   id?: string
   userId: string
   totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
+  status?: $Enums.OrderStatus
 }
 
 export type OrderUncheckedCreateWithoutItemsInput = {
@@ -365,6 +392,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   userId: string
   totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
+  status?: $Enums.OrderStatus
 }
 
 export type OrderCreateOrConnectWithoutItemsInput = {
@@ -388,6 +416,7 @@ export type OrderUpdateWithoutItemsInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
 export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -395,6 +424,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
 
@@ -433,6 +463,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   userId?: boolean
   totalPrice?: boolean
   createdAt?: boolean
+  status?: boolean
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -442,6 +473,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   userId?: boolean
   totalPrice?: boolean
   createdAt?: boolean
+  status?: boolean
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -449,6 +481,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   userId?: boolean
   totalPrice?: boolean
   createdAt?: boolean
+  status?: boolean
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectScalar = {
@@ -456,9 +489,10 @@ export type OrderSelectScalar = {
   userId?: boolean
   totalPrice?: boolean
   createdAt?: boolean
+  status?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "totalPrice" | "createdAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "totalPrice" | "createdAt" | "status", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
@@ -476,6 +510,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     userId: string
     totalPrice: runtime.Decimal
     createdAt: Date
+    status: $Enums.OrderStatus
   }, ExtArgs["result"]["order"]>
   composites: {}
 }
@@ -904,6 +939,7 @@ export interface OrderFieldRefs {
   readonly userId: Prisma.FieldRef<"Order", 'String'>
   readonly totalPrice: Prisma.FieldRef<"Order", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
+  readonly status: Prisma.FieldRef<"Order", 'OrderStatus'>
 }
     
 

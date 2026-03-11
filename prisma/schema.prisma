@@ -15,19 +15,15 @@ datasource db {
 // }
 
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  firstName  String?
-  lastName   String?
-  picture    String?
-  provider   String   @default("google")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  picture   String?
+  provider  String   @default("google")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
-
-
-
 
 //////////////////////
 // CATEGORIES
@@ -57,13 +53,21 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id])
 }
 
-model Order {
-  id         String   @id @default(uuid())
-  userId     String
-  totalPrice Decimal  @db.Decimal(10, 2)
-  createdAt  DateTime @default(now())
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
 
-  items OrderItem[]
+model Order {
+  id         String      @id @default(uuid())
+  userId     String
+  totalPrice Decimal     @db.Decimal(10, 2)
+  createdAt  DateTime    @default(now())
+  status     OrderStatus @default(PENDING)
+  items      OrderItem[]
 }
 
 model Product {

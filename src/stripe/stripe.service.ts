@@ -29,6 +29,8 @@ export class StripeService {
 
         });
 
+        console.log(order, 'from order')
+
         if (!order || !order.items || order.items.length === 0) {
             throw new BadRequestException('Cart is empty');
         }
