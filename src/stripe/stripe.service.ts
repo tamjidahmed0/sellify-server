@@ -29,25 +29,17 @@ export class StripeService {
 
         });
 
-        console.log(order, 'from order')
-
         if (!order || !order.items || order.items.length === 0) {
             throw new BadRequestException('Cart is empty');
         }
 
         const productIds = order.items.map(item => item.productId);
 
-        console.log(productIds)
-
-
 
         // total price calculate
         const totalPrice = order?.items.reduce((sum, item) => {
             return sum + Number(item.price) * item.quantity;
         }, 0);
-
-        console.log(totalPrice)
-
 
 
         const paymentIntent = await this.stripe.paymentIntents.create({
