@@ -71,4 +71,19 @@ export class ReviewController {
     }
 
 
+
+
+
+
+    // GET /product/:slug/reviews?page=1&limit=10
+    @Get('public/:slug')
+    async getPublicReviews(
+        @Param('slug') slug: string,
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
+    ) {
+        return this.review.getPublicReviews(slug, +page, +limit);
+    }
+
+
 }

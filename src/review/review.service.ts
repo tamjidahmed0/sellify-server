@@ -211,4 +211,52 @@ export class ReviewService {
 
 
 
+
+    async getPublicReviews(slug: string, page: number, limit: number) {
+        const product = await this.prisma.product.findUnique({
+            where: { slug },
+            select: { id: true },
+        });
+
+        if (!product) throw new NotFoundException('Product not found');
+
+        const skip = (page - 1) * limit;
+
+        const [reviews, total] = await Promise.all([
+            this.prisma.review.findMany({
+                where: { productId: product.id },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+                select: {
+                    id: true,
+                    rating: true,
+                    comment: true,
+                    createdAt: true,
+                    userId: true,
+                },
+            }),
+            this.prisma.review.count({
+                where: { productId: product.id },
+            }),
+        ]);
+
+        return {
+            data: reviews,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasMore: page < Math.ceil(total / limit),
+            },
+        };
+    }
+
+
+
+
+
+
+
 }
