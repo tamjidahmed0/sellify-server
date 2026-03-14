@@ -1,3 +1,4 @@
+import { Transform, Type } from 'class-transformer';
 import {
     IsString,
     IsOptional,

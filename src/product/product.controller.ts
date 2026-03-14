@@ -3,6 +3,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/product.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { GetSuggestionsDto } from './dto/get-suggestions.dto';
 
 @Controller('product')
 export class ProductController {
@@ -46,6 +47,17 @@ export class ProductController {
     }
 
 
+
+    // GET /product/suggestions?q=shirt 
+    @Get('suggestions')
+    async getSuggestions(@Query() query: GetSuggestionsDto) {
+        return this.product.getSuggestions(query.q);
+    }
+
+
+
+
+
     // Get Products with pagination, filtering, and sorting
 
     @Get()
@@ -55,6 +67,7 @@ export class ProductController {
         @Query('category') categories?: string | string[],
         @Query('minPrice') minPrice?: string,
         @Query('maxPrice') maxPrice?: string,
+        @Query('search') search?: string,
     ) {
 
 
@@ -73,6 +86,7 @@ export class ProductController {
             categories: categoryArray,
             minPrice: minPrice ? parseInt(minPrice, 10) : 0,
             maxPrice: maxPrice ? parseInt(maxPrice, 10) : undefined,
+            search: search ?? undefined,
         });
     }
 
@@ -86,6 +100,8 @@ export class ProductController {
         return result
 
     }
+
+
 
 
 

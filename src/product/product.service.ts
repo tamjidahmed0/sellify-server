@@ -86,7 +86,7 @@ export class ProductService {
 
     // Get Products with pagination, filtering by category and price range
 
-    async getProducts(pagination: { skip: number, take: number, categories: string[], minPrice: number, maxPrice: number | undefined }) {
+    async getProducts(pagination: { skip: number, take: number, search: string | undefined, categories: string[], minPrice: number, maxPrice: number | undefined }) {
         const result = await this.prisma.product.findMany({
             skip: pagination.skip,
             take: pagination.take,
@@ -110,6 +110,16 @@ export class ProductService {
                             ...(pagination.maxPrice !== undefined && { lte: pagination.maxPrice }),
                         },
                     },
+
+                    pagination.search
+                        ? {
+                            OR: [
+                                { name: { contains: pagination.search, mode: 'insensitive' } },
+                                { description: { contains: pagination.search, mode: 'insensitive' } },
+                                { slug: { contains: pagination.search, mode: 'insensitive' } },
+                            ],
+                        }
+                        : {},
                 ],
             },
 
@@ -173,7 +183,18 @@ export class ProductService {
                     select: {
                         stock: true
                     }
-                }
+                },
+                reviews: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 5,
+                    select: {
+                        id: true,
+                        rating: true,
+                        comment: true,
+                        createdAt: true,
+                        userId: true,
+                    },
+                },
             }
         })
 
@@ -186,6 +207,41 @@ export class ProductService {
             inStock: stock > 0,
             inventory: undefined,
         };
+    }
+
+
+
+    async getSuggestions(q: string) {
+
+        const products = await this.prisma.product.findMany({
+            where: {
+                OR: [
+                    { name: { contains: q, mode: 'insensitive' } },
+                    { description: { contains: q, mode: 'insensitive' } },
+                ],
+            },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                image: true,
+                price: true,
+                categories: {
+                    select: { name: true },
+                },
+            },
+            take: 6,
+            orderBy: { rating: 'desc' },
+        });
+
+        return products.map((p) => ({
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            image: p.image,
+            price: p.price,
+            category: p.categories[0]?.name ?? null,
+        }));
     }
 
 
