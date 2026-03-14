@@ -26,6 +26,20 @@ model User {
 }
 
 //////////////////////
+// HERO SLIDES
+//////////////////////
+model Slide {
+  id          String   @id @default(uuid())
+  badge       String
+  title       String
+  description String
+  link        String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+//////////////////////
 // CATEGORIES
 //////////////////////
 

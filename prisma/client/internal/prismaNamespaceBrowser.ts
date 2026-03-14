@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Slide: 'Slide',
   Category: 'Category',
   OrderItem: 'OrderItem',
   Order: 'Order',
@@ -91,6 +92,20 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const SlideScalarFieldEnum = {
+  id: 'id',
+  badge: 'badge',
+  title: 'title',
+  description: 'description',
+  link: 'link',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SlideScalarFieldEnum = (typeof SlideScalarFieldEnum)[keyof typeof SlideScalarFieldEnum]
 
 
 export const CategoryScalarFieldEnum = {

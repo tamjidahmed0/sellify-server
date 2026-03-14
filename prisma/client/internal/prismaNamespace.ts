@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  Slide: 'Slide',
   Category: 'Category',
   OrderItem: 'OrderItem',
   Order: 'Order',
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "orderItem" | "order" | "product" | "productImage" | "inventory" | "review" | "cart" | "cartItem"
+    modelProps: "user" | "slide" | "category" | "orderItem" | "order" | "product" | "productImage" | "inventory" | "review" | "cart" | "cartItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -484,6 +485,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    Slide: {
+      payload: Prisma.$SlidePayload<ExtArgs>
+      fields: Prisma.SlideFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SlideFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SlideFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>
+        }
+        findFirst: {
+          args: Prisma.SlideFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SlideFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>
+        }
+        findMany: {
+          args: Prisma.SlideFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>[]
+        }
+        create: {
+          args: Prisma.SlideCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>
+        }
+        createMany: {
+          args: Prisma.SlideCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SlideCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>[]
+        }
+        delete: {
+          args: Prisma.SlideDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>
+        }
+        update: {
+          args: Prisma.SlideUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>
+        }
+        deleteMany: {
+          args: Prisma.SlideDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SlideUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SlideUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>[]
+        }
+        upsert: {
+          args: Prisma.SlideUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlidePayload>
+        }
+        aggregate: {
+          args: Prisma.SlideAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSlide>
+        }
+        groupBy: {
+          args: Prisma.SlideGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SlideGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SlideCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SlideCountAggregateOutputType> | number
         }
       }
     }
@@ -1206,6 +1281,20 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const SlideScalarFieldEnum = {
+  id: 'id',
+  badge: 'badge',
+  title: 'title',
+  description: 'description',
+  link: 'link',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SlideScalarFieldEnum = (typeof SlideScalarFieldEnum)[keyof typeof SlideScalarFieldEnum]
+
+
 export const CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1518,6 +1607,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  slide?: Prisma.SlideOmit
   category?: Prisma.CategoryOmit
   orderItem?: Prisma.OrderItemOmit
   order?: Prisma.OrderOmit
