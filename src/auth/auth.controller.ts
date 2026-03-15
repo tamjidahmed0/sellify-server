@@ -34,12 +34,12 @@ export class AuthController {
         });
 
         // Send to frontend
-        return res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
+        return res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
     }
 
 
     @Post('verify')
-    verifyToken( @Body('token') token: string) {
+    verifyToken(@Body('token') token: string) {
         return this.authService.verifyToken(token);
     }
 
