@@ -72,8 +72,16 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
+GOOGLE_CLIENT_ID = your client id
+GOOGLE_CLIENT_SECRET = your client secret
+GOOGLE_CALLBACK_URL = http://localhost:4000/auth/google/callback
+
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+FRONTEND_URL = http://localhost:3000
+
+
 ```
 
 **4. Run Prisma migrations**
