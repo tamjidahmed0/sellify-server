@@ -2,13 +2,16 @@ import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+
 
 @Controller('auth')
 export class AuthController {
 
     constructor(
         private readonly authService: AuthService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService
     ) { }
 
 
@@ -34,7 +37,8 @@ export class AuthController {
         });
 
         // Send to frontend
-        return res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+        return res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     }
 
 
