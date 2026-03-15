@@ -20,7 +20,6 @@ The backend server for **Sellify**, a full-stack e-commerce platform. Built with
 -  **Reviews & Ratings** — Product reviews by verified buyers
 -  **Stripe Payment** — Secure payment processing
 -  **Cloudinary Upload** — Product image uploads
--  **Admin Routes** — Manage products and orders *(in progress)*
 
 ---
 
@@ -97,7 +96,7 @@ npm run start:dev
 
 # Production
 npm run build
-node dist/main
+node dist/src/main
 ```
 
 Server will run on `http://localhost:4000`
