@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get, UseInterceptors, UploadedFile } from '@nes
 import { CategoryService } from './category.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import multer from 'multer';
+import { AdminCategoryService } from './admin-category.service';
 
 
 
@@ -9,7 +10,10 @@ import multer from 'multer';
 @Controller('category')
 export class CategoryController {
 
-    constructor(private category: CategoryService) { }
+    constructor(
+        private category: CategoryService,
+        private adminCategory : AdminCategoryService
+    ) { }
 
     // Create category
     @UseInterceptors(
@@ -28,6 +32,13 @@ export class CategoryController {
     @Get()
     async getAllCategories() {
         return this.category.getAllCategories();
+    }
+
+
+
+    @Get('author')
+    async getDashboardCategories (){
+        return this.adminCategory.getAllCategories()
     }
 
 

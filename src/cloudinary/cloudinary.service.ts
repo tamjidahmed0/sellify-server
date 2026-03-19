@@ -28,5 +28,12 @@ export class CloudinaryService {
   }
 
 
+  // Delete a file from Cloudinary by its public_id
+  // public_id example: "e-commerce/product-thumbnail/abc"
+  async deleteFile(publicId: string): Promise<void> {
+    await cloudinary.uploader.destroy(publicId);
+  }
+
+
 
 }
