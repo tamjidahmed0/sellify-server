@@ -1,9 +1,14 @@
-import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException, Get, Query, Param } from '@nestjs/common';
+import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/product.dto';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { GetSuggestionsDto } from './dto/get-suggestions.dto';
+import { imageUploadInterceptor } from 'src/common/interceptors/image-upload.interceptor';
+
+
+
+
+
+
 
 @Controller('product')
 export class ProductController {
@@ -14,22 +19,7 @@ export class ProductController {
     // Create Product with image upload, slug generation, and inventory creation
 
     @Post('create')
-    @UseInterceptors(
-        FileFieldsInterceptor([
-            { name: 'thumbnail', maxCount: 1 },   // single
-            { name: 'images', maxCount: 10 },     // multiple
-        ], {
-            storage: memoryStorage(),
-            limits: { fileSize: 5 * 1024 * 1024 },
-            fileFilter: (req, file, cb) => {
-                if (file.mimetype.match(/\/(jpg|jpeg|png|webp|gif)$/)) {
-                    cb(null, true);
-                } else {
-                    cb(new Error('Only images allowed'), false);
-                }
-            },
-        }),
-    )
+    @UseInterceptors(imageUploadInterceptor)
 
     async createProduct(
         @UploadedFiles() files: {
@@ -45,6 +35,55 @@ export class ProductController {
 
         return this.product.createProduct(files, createProductDto);
     }
+
+
+
+
+    @Patch(':id')
+    @UseInterceptors(imageUploadInterceptor)
+    async updateProduct(
+        @Param('id') id: string,
+        @UploadedFiles()
+        files: {
+            thumbnail?: Express.Multer.File[];
+            images?: Express.Multer.File[];
+        },
+        @Body() updateProductDto,
+    ) {
+        return this.product.updateProduct(id, files ?? {}, updateProductDto);
+    }
+
+
+
+    @Delete(':id')
+    async deleteProduct(@Param('id') id: string) {
+        return this.product.deleteProduct(id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    @Get('author/edit/preview/:id')
+    async productUpdatePreview(@Param('id') id: string) {
+        return this.product.productUpdatePreview(id)
+    }
+
+    @Get('author/products')
+    async getProductsByAuthor() {
+        return this.product.getProductsByAuthor()
+    }
+
+
+
+
+
 
 
 
