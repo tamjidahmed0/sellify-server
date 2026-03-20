@@ -1,4 +1,4 @@
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 
 export const imageUploadInterceptor = FileFieldsInterceptor(
@@ -20,3 +20,19 @@ export const imageUploadInterceptor = FileFieldsInterceptor(
     },
   }
 );
+
+
+
+
+
+export const CategoryImageUploadInterceptor = FileInterceptor('image', {
+  storage: memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images allowed'), false);
+    }
+  },
+});

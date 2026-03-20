@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/product.dto';
 import slugify from 'slugify';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-
+import { extractPublicId } from 'src/common/helper/cloudinary.helper';
 
 @Injectable()
 export class ProductService {
@@ -13,20 +13,6 @@ export class ProductService {
         private cloudinary: CloudinaryService
 
     ) { }
-
-
-    // ── Helper — extract Cloudinary public_id from secure URL ──────────────────
-    // Input:  "https://res.cloudinary.com/demo/image/upload/v123/e-commerce/products/abc.jpg"
-    // Output: "e-commerce/products/abc"
-    private extractPublicId(url: string): string { 
-        const parts = url.split('/upload/');
-        if (parts.length < 2) return '';
-        const withoutVersion = parts[1].replace(/^v\d+\//, ''); // remove v1773594691/
-        return withoutVersion.replace(/\.[^/.]+$/, '');          // remove .jpg / .png
-    }
- 
-
-
 
 
     // Create Product with image upload, slug generation, and inventory creation
@@ -340,7 +326,7 @@ export class ProductService {
         let thumbnailUrl: string | undefined;
         if (files.thumbnail?.[0]) {
             if (existing.image) {
-                const oldPublicId = this.extractPublicId(existing.image);
+                const oldPublicId = extractPublicId(existing.image);
                 if (oldPublicId) await this.cloudinary.deleteFile(oldPublicId);
             }
             const uploaded = await this.cloudinary.uploadFile(
@@ -372,7 +358,7 @@ export class ProductService {
             );
 
             for (const img of imagesToDelete) {
-                const publicId = this.extractPublicId(img.url);
+                const publicId = extractPublicId(img.url);
                 if (publicId) await this.cloudinary.deleteFile(publicId);
                 await this.prisma.productImage.delete({ where: { id: img.id } });
             }
@@ -430,13 +416,13 @@ export class ProductService {
 
         // Delete all product images from Cloudinary
         for (const img of existing.images) {
-            const publicId = this.extractPublicId(img.url);
+            const publicId = extractPublicId(img.url);
             if (publicId) await this.cloudinary.deleteFile(publicId);
         }
 
         // Delete thumbnail from Cloudinary
         if (existing.image) {
-            const publicId = this.extractPublicId(existing.image);
+            const publicId = extractPublicId(existing.image);
             if (publicId) await this.cloudinary.deleteFile(publicId);
         }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Req, DefaultValuePipe, ParseIntPipe, Param, Body, Patch } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 
@@ -22,6 +22,35 @@ export class OrderController {
         const userId = req.user.id
         return this.order.findOrdersByUser(userId, +page, +limit);
     }
+
+
+
+
+
+    // GET /order?page=1&limit=10&search=john&status=PENDING&dateFrom=2026-01-01&dateTo=2026-03-31
+    @Get('author')
+    getOrders(
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+        @Query('search') search?: string,
+        @Query('status') status?,
+        @Query('dateFrom') dateFrom?: string,
+        @Query('dateTo') dateTo?: string,
+    ) {
+        return this.order.getOrders({ page, limit, search, status, dateFrom, dateTo });
+    }
+
+
+
+    // PATCH /order/author/:id/status
+    @Patch('author/:id/status')
+    updateStatus(
+        @Param('id') id: string,
+        @Body() dto,
+    ) {
+        return this.order.updateOrderStatus(id, dto.status);
+    }
+
 
 
 

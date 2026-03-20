@@ -29,6 +29,8 @@ export class CategoryService {
         return category;
     }
 
+
+
     async getAllCategories() {
         const prices = await this.prisma.product.aggregate({
             _max: {
@@ -51,4 +53,5 @@ export class CategoryService {
             where: { id },
         });
     }
+
 }
