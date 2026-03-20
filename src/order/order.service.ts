@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Decimal from 'decimal.js';
 
@@ -100,41 +100,6 @@ export class OrderService {
     }
 
 
-
-    // async findOrdersByUser(userId: string, page = 1, limit = 10) {
-    //     const skip = (page - 1) * limit;
-
-    //     const [orders, total] = await Promise.all([
-    //         this.prisma.order.findMany({
-    //             where: { userId },
-    //             skip,
-    //             take: limit,
-    //             orderBy: { createdAt: 'desc' },
-    //             include: {
-    //                 items: {
-    //                     include: {
-    //                         product: {
-    //                             select: { id: true, name: true, image: true, slug: true },
-    //                         },
-    //                     },
-    //                 },
-    //             },
-    //         }),
-    //         this.prisma.order.count({ where: { userId } }),
-    //     ]);
-
-    //     return {
-    //         data: orders,
-    //         meta: {
-    //             total,
-    //             page,
-    //             limit,
-    //             totalPages: Math.ceil(total / limit),
-    //         },
-    //     };
-    // }
-
-
     async findOrdersByUser(userId: string, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
 
@@ -187,8 +152,105 @@ export class OrderService {
 
 
 
+    // GET all orders with filters + pagination
+    async getOrders(query) {
+        const page = Number(query.page ?? 1);
+        const limit = Number(query.limit ?? 10);
+        const skip = (page - 1) * limit;
+
+        // Build dynamic where clause
+        const where: any = {};
+
+        if (query.status) {
+            where.status = query.status;
+        }
+
+        if (query.dateFrom || query.dateTo) {
+            where.createdAt = {
+                ...(query.dateFrom && { gte: new Date(query.dateFrom) }),
+                ...(query.dateTo && { lte: new Date(query.dateTo + 'T23:59:59Z') }),
+            };
+        }
+
+        // Search by user email or name — fetch matching user ids first
+        if (query.search) {
+            const users = await this.prisma.user.findMany({
+                where: {
+                    OR: [
+                        { email: { contains: query.search, mode: 'insensitive' } },
+                        { firstName: { contains: query.search, mode: 'insensitive' } },
+                        { lastName: { contains: query.search, mode: 'insensitive' } },
+                    ],
+                },
+                select: { id: true },
+            });
+            where.userId = { in: users.map((u) => u.id) };
+        }
+
+        const [orders, total] = await Promise.all([
+            this.prisma.order.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    items: { select: { id: true } }, // just need count
+                },
+            }),
+            this.prisma.order.count({ where }),
+        ]);
+
+        // Attach customer info
+        const userIds = [...new Set(orders.map((o) => o.userId))];
+        const users = await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, firstName: true, lastName: true, email: true },
+        });
+        const userMap = Object.fromEntries(users.map((u) => [u.id, u]));
+
+        const data = orders.map((o) => {
+            const user = userMap[o.userId];
+            const customer = user
+                ? [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+                : 'Unknown';
+
+            return {
+                id: `#${o.id.slice(0, 8).toUpperCase()}`,
+                rawId: o.id,
+                customer,
+                email: user?.email ?? '',
+                date: o.createdAt.toISOString(),
+                items: o.items.length,
+                total: `$${Number(o.totalPrice).toLocaleString()}`,
+                status: o.status,
+            };
+        });
+
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
 
 
+
+    // PATCH — update order status
+    async updateOrderStatus(id: string, status) {
+        const order = await this.prisma.order.findUnique({ where: { id } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        const updated = await this.prisma.order.update({
+            where: { id },
+            data: { status },
+        });
+
+        return { success: true, status: updated.status };
+    }
 
 
 }

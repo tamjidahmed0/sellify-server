@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Get, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseInterceptors, UploadedFile, Patch, Param, Delete } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import multer from 'multer';
 import { AdminCategoryService } from './admin-category.service';
+import { CategoryImageUploadInterceptor } from 'src/common/interceptors/image-upload.interceptor';
 
 
 
@@ -12,16 +13,11 @@ export class CategoryController {
 
     constructor(
         private category: CategoryService,
-        private adminCategory : AdminCategoryService
+        private adminCategory: AdminCategoryService
     ) { }
 
     // Create category
-    @UseInterceptors(
-        FileInterceptor('file', {
-            storage: multer.memoryStorage(),
-            limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-        }),
-    )
+    @UseInterceptors(CategoryImageUploadInterceptor)
     @Post('create')
     async createCategory(@Body('name') name: string, @UploadedFile() file: Express.Multer.File,) {
         return this.category.createCategory(name, file);
@@ -37,9 +33,34 @@ export class CategoryController {
 
 
     @Get('author')
-    async getDashboardCategories (){
+    async getDashboardCategories() {
         return this.adminCategory.getAllCategories()
     }
+
+
+    // PATCH category/:id
+    @Patch(':id')
+    @UseInterceptors(CategoryImageUploadInterceptor)
+    updateCategory(
+        @Param('id') id: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() dto,
+    ) {
+        return this.adminCategory.updateCategory(id, file, dto);
+    }
+
+
+
+
+    // DELETE /category/:id
+    @Delete(':id')
+    deleteCategory(@Param('id') id: string) {
+        return this.adminCategory.deleteCategory(id);
+    }
+
+
+
+
 
 
 

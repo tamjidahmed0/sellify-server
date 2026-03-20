@@ -6,7 +6,10 @@ async function bootstrap() {
     rawBody: true
   });
 
-  app.enableCors(); 
+  app.enableCors({
+    origin: ["http://localhost:3000", "http://localhost:5173"], // frontend URL 
+    credentials: true
+  });
 
 
   await app.listen(process.env.PORT ?? 4000);

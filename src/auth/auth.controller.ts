@@ -38,12 +38,13 @@ export class AuthController {
 
         // Send to frontend
         const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+        console.log(token,'d')
         return res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     }
 
 
     @Post('verify')
-    verifyToken(@Body('token') token: string) {
+    verifyToken(@Body('token') token: string) { 
         return this.authService.verifyToken(token);
     }
 
