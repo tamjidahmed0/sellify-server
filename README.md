@@ -67,6 +67,7 @@ Create a `.env` file in the root:
 DATABASE_URL=postgresql://user:password@localhost:5432/sellify
 
 JWT_SECRET=your_jwt_secret
+ADMIN_JWT_SECRET= your_admin_jwt
 
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
