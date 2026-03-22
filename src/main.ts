@@ -7,7 +7,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: ["http://localhost:3000", "http://localhost:5173"], // frontend URL 
+    origin: ["http://localhost:3000", "http://localhost:5173", "http://localhost:4173", "https://sellify-pi.vercel.app"], // frontend URL 
     credentials: true
   });
 
