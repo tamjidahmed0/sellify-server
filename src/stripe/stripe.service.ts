@@ -18,7 +18,7 @@ export class StripeService {
     }
 
     // Payment Intent create 
-    async createPaymentIntent(id: string) {
+    async createPaymentIntent(id: string, address) {
 
 
         const order = await this.prisma.cart.findFirst({
@@ -51,7 +51,8 @@ export class StripeService {
                 // productIds: JSON.stringify({productIds}),
                 data: JSON.stringify({
                     items: productIds,
-                    userId: id
+                    userId: id,
+                    address
                 })
             }
 

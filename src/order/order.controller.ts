@@ -53,6 +53,13 @@ export class OrderController {
 
 
 
+    @Get(':id')
+    getOrder(@Param('id') id: string) {
+        return this.order.getOrderById(id);
+    }
+
+
+
 
 
 }

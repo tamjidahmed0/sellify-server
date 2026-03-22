@@ -7,13 +7,15 @@ export class OrderService {
     constructor(private prisma: PrismaService) { }
 
     //  Get Orders By User 
-    async createOrder(productIds: string[], userId: string) {
+
+    async createOrder(productIds: string[], userId: string, address?) {
         if (!productIds || productIds.length === 0) {
             throw new BadRequestException('Order must contain at least one item');
         }
 
         return this.prisma.$transaction(async (prisma) => {
-            // 1. Get cart actual quantity 
+
+            // 1. Get cart with actual quantities
             const cart = await prisma.cart.findFirst({
                 where: { userId },
                 include: {
@@ -23,7 +25,7 @@ export class OrderService {
                 },
             });
 
-            // 2. Products + inventory
+            // 2. Fetch products + inventory
             const products = await prisma.product.findMany({
                 where: { id: { in: productIds } },
                 include: { inventory: true },
@@ -33,7 +35,7 @@ export class OrderService {
                 throw new BadRequestException('Some products not found');
             }
 
-            // 3. Calculate total — cart quantity 
+            // 3. Calculate total using cart quantities
             let totalPrice = new Decimal(0);
             const orderItemsData: {
                 productId: string;
@@ -45,14 +47,11 @@ export class OrderService {
                 const product = products.find((p) => p.id === productId);
                 if (!product) throw new BadRequestException('Product not found');
 
-                // Get quantity from cart if nothing then 1
                 const cartItem = cart?.items.find((i) => i.productId === productId);
                 const quantity = cartItem?.quantity ?? 1;
 
                 if (!product.inventory || product.inventory.stock < quantity) {
-                    throw new BadRequestException(
-                        `Not enough stock for ${product.name}`
-                    );
+                    throw new BadRequestException(`Not enough stock for ${product.name}`);
                 }
 
                 const price = new Decimal(product.price.toString());
@@ -60,7 +59,7 @@ export class OrderService {
                 orderItemsData.push({ productId, quantity, price });
             }
 
-            // 4. Inventory deduct — quantity
+            // 4. Deduct inventory stock
             await Promise.all(
                 orderItemsData.map(({ productId, quantity }) =>
                     prisma.inventory.update({
@@ -70,17 +69,24 @@ export class OrderService {
                 )
             );
 
-            // 5. Order create
+            // 5. Create order — address fields 
             const order = await prisma.order.create({
                 data: {
                     userId,
                     totalPrice: totalPrice.toFixed(2),
                     items: { create: orderItemsData },
+
+                    // Delivery address — webhook
+                    addressLine: address?.addressLine ?? null,
+                    city: address?.city ?? null,
+                    state: address?.state ?? null,
+                    zipCode: address?.zipCode ?? null,
+                    country: address?.country ?? null,
                 },
                 include: { items: true },
             });
 
-            // 6. Cart items clear
+            // 6. Clear cart after order is placed
             if (cart) {
                 await prisma.cartItem.deleteMany({
                     where: {
@@ -88,16 +94,18 @@ export class OrderService {
                         productId: { in: productIds },
                     },
                 });
-
                 await prisma.cart.delete({ where: { id: cart.id } });
             }
 
             return order;
+
         }, {
             maxWait: 10000,
             timeout: 20000,
         });
     }
+
+
 
 
     async findOrdersByUser(userId: string, page = 1, limit = 10) {
@@ -239,18 +247,112 @@ export class OrderService {
 
 
 
-    // PATCH — update order status
+
+    // PATCH — update status and append to history
     async updateOrderStatus(id: string, status) {
         const order = await this.prisma.order.findUnique({ where: { id } });
         if (!order) throw new NotFoundException('Order not found');
 
-        const updated = await this.prisma.order.update({
-            where: { id },
-            data: { status },
-        });
+        // Update status + create history entry in a transaction
+        const [updated] = await this.prisma.$transaction([
+            this.prisma.order.update({
+                where: { id },
+                data: { status },
+            })
+
+        ]);
 
         return { success: true, status: updated.status };
     }
+
+
+
+
+
+
+
+
+    // GET single order with all details
+    async getOrderById(id: string) {
+        const order = await this.prisma.order.findUnique({
+            where: { id },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true,
+                                slug: true,
+                            },
+                        },
+                    },
+                },
+
+            },
+        });
+
+        if (!order) throw new NotFoundException('Order not found');
+
+        // Fetch customer info separately (no relation in schema)
+        const user = await this.prisma.user.findUnique({
+            where: { id: order.userId },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                picture: true,
+            },
+        });
+
+        const customer = user
+            ? [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+            : 'Unknown';
+
+        return {
+            id: `#${order.id.slice(0, 8).toUpperCase()}`,
+            rawId: order.id,
+            status: order.status,
+            createdAt: order.createdAt,
+            totalPrice: Number(order.totalPrice),
+
+            // Customer info
+            customer: {
+                name: customer,
+                email: user?.email ?? '',
+                picture: user?.picture ?? null,
+            },
+
+            // Delivery address
+            address: {
+                line: order.addressLine ?? null,
+                city: order.city ?? null,
+                state: order.state ?? null,
+                zipCode: order.zipCode ?? null,
+                country: order.country ?? null,
+            },
+
+            // Order items
+            items: order.items.map((item) => ({
+                id: item.id,
+                productId: item.productId,
+                productName: item.product.name,
+                productImage: item.product.image,
+                quantity: item.quantity,
+                price: Number(item.price),
+                subtotal: Number(item.price) * item.quantity,
+            })),
+
+
+        };
+    }
+
+
+
+
+
 
 
 }

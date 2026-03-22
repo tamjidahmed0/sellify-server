@@ -82,7 +82,39 @@ model Order {
   createdAt  DateTime    @default(now())
   status     OrderStatus @default(PENDING)
   items      OrderItem[]
+
+  // Delivery address
+  addressLine String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+
+ 
 }
+
+
+
+
+
+model UserAddress {
+  id          String   @id @default(uuid())
+  userId      String
+  firstName   String
+  lastName    String
+  email       String
+  phone       String
+  addressLine String
+  city        String
+  state       String
+  zipCode     String
+  country     String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+
+
 
 model Product {
   id            String   @id @default(uuid())
