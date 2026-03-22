@@ -90,7 +90,6 @@ export class ProductService {
 
 
     async productUpdatePreview(id: string) {
-        console.log(id)
         return this.prisma.product.findUnique({
             where: {
                 id
@@ -406,7 +405,7 @@ export class ProductService {
 
 
 
- 
+
     async deleteProduct(id: string) {
         const existing = await this.prisma.product.findUnique({
             where: { id },

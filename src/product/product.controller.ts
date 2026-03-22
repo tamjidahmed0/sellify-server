@@ -1,8 +1,10 @@
-import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException, Get, Query, Param, Patch, Delete } from '@nestjs/common';
+import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException, Get, Query, Param, Patch, Delete, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/product.dto';
 import { GetSuggestionsDto } from './dto/get-suggestions.dto';
 import { imageUploadInterceptor } from 'src/common/interceptors/image-upload.interceptor';
+import { AuthGuard } from '@nestjs/passport';
+import { AdminJwtAuthGuard } from 'src/auth/guard/admin-jwt.guard';
 
 
 
@@ -19,6 +21,7 @@ export class ProductController {
     // Create Product with image upload, slug generation, and inventory creation
 
     @Post('create')
+    @UseGuards(AdminJwtAuthGuard)
     @UseInterceptors(imageUploadInterceptor)
 
     async createProduct(
@@ -40,6 +43,7 @@ export class ProductController {
 
 
     @Patch(':id')
+    @UseGuards(AdminJwtAuthGuard)
     @UseInterceptors(imageUploadInterceptor)
     async updateProduct(
         @Param('id') id: string,
@@ -56,6 +60,7 @@ export class ProductController {
 
 
     @Delete(':id')
+    @UseGuards(AdminJwtAuthGuard)
     async deleteProduct(@Param('id') id: string) {
         return this.product.deleteProduct(id);
     }
@@ -64,18 +69,14 @@ export class ProductController {
 
 
 
-
-
-
-
-
-
     @Get('author/edit/preview/:id')
+    @UseGuards(AdminJwtAuthGuard)
     async productUpdatePreview(@Param('id') id: string) {
         return this.product.productUpdatePreview(id)
     }
 
     @Get('author/products')
+    @UseGuards(AdminJwtAuthGuard)
     async getProductsByAuthor() {
         return this.product.getProductsByAuthor()
     }
@@ -98,7 +99,6 @@ export class ProductController {
 
 
     // Get Products with pagination, filtering, and sorting
-
     @Get()
     async getProducts(
         @Query('skip') skip?: string,

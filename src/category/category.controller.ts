@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Get, UseInterceptors, UploadedFile, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseInterceptors, UploadedFile, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import multer from 'multer';
 import { AdminCategoryService } from './admin-category.service';
 import { CategoryImageUploadInterceptor } from 'src/common/interceptors/image-upload.interceptor';
+import { AdminJwtAuthGuard } from 'src/auth/guard/admin-jwt.guard';
 
 
 
@@ -19,6 +20,7 @@ export class CategoryController {
     // Create category
     @UseInterceptors(CategoryImageUploadInterceptor)
     @Post('create')
+    @UseGuards(AdminJwtAuthGuard)
     async createCategory(@Body('name') name: string, @UploadedFile() file: Express.Multer.File,) {
         return this.category.createCategory(name, file);
     }
@@ -33,6 +35,7 @@ export class CategoryController {
 
 
     @Get('author')
+    @UseGuards(AdminJwtAuthGuard)
     async getDashboardCategories() {
         return this.adminCategory.getAllCategories()
     }
@@ -40,6 +43,7 @@ export class CategoryController {
 
     // PATCH category/:id
     @Patch(':id')
+    @UseGuards(AdminJwtAuthGuard)
     @UseInterceptors(CategoryImageUploadInterceptor)
     updateCategory(
         @Param('id') id: string,
@@ -54,15 +58,10 @@ export class CategoryController {
 
     // DELETE /category/:id
     @Delete(':id')
+    @UseGuards(AdminJwtAuthGuard)
     deleteCategory(@Param('id') id: string) {
         return this.adminCategory.deleteCategory(id);
     }
-
-
-
-
-
-
 
 
 

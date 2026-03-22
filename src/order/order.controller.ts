@@ -1,6 +1,7 @@
 import { Controller, Get, Query, UseGuards, Req, DefaultValuePipe, ParseIntPipe, Param, Body, Patch } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { AdminJwtAuthGuard } from 'src/auth/guard/admin-jwt.guard';
 
 @Controller('order')
 export class OrderController {
@@ -29,6 +30,7 @@ export class OrderController {
 
     // GET /order?page=1&limit=10&search=john&status=PENDING&dateFrom=2026-01-01&dateTo=2026-03-31
     @Get('author')
+    @UseGuards(AdminJwtAuthGuard)
     getOrders(
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -44,6 +46,7 @@ export class OrderController {
 
     // PATCH /order/author/:id/status
     @Patch('author/:id/status')
+    @UseGuards(AdminJwtAuthGuard)
     updateStatus(
         @Param('id') id: string,
         @Body() dto,
@@ -54,6 +57,7 @@ export class OrderController {
 
 
     @Get(':id')
+    @UseGuards(AdminJwtAuthGuard)
     getOrder(@Param('id') id: string) {
         return this.order.getOrderById(id);
     }
