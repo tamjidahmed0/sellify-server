@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AdminAuthService } from './admin.auth.service';
 import { AdminAuthController } from './admin.auth.controller';
+import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 
 
 @Module({
@@ -24,7 +25,7 @@ import { AdminAuthController } from './admin.auth.controller';
     PrismaModule
   ],
   controllers: [AuthController, AdminAuthController],
-  providers: [GoogleStrategy, AuthService, JwtStrategy, AdminAuthService],
+  providers: [GoogleStrategy, AuthService, JwtStrategy, AdminAuthService, AdminJwtStrategy],
   exports:[JwtModule]
 })
 export class AuthModule { }
