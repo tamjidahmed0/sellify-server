@@ -1,4 +1,4 @@
-import { Controller, Post, Headers, Req, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Post, Headers, Req, BadRequestException, UseGuards, Body } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { StripeService } from './stripe.service';
@@ -20,8 +20,11 @@ export class StripeController {
   // Payment Intent endpoint
   @UseGuards(JwtAuthGuard)
   @Post('create-payment-intent')
-  async createPaymentIntent(@Req() req) {
-    return this.stripeService.createPaymentIntent(req.user.id);
+  async createPaymentIntent(
+    @Req() req,
+    @Body('address') address,
+  ) {
+    return this.stripeService.createPaymentIntent(req.user.id, address);
   }
 
 
@@ -38,9 +41,9 @@ export class StripeController {
       if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
 
-        const { items, userId } = JSON.parse(paymentIntent.metadata.data);
+        const { items, userId, address } = JSON.parse(paymentIntent.metadata.data);
 
-        await this.order.createOrder(items, userId)
+        await this.order.createOrder(items, userId, address)
 
       }
 

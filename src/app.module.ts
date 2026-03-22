@@ -12,11 +12,12 @@ import { ProfileModule } from './profile/profile.module';
 import { StripeModule } from './stripe/stripe.module';
 import { SlidesModule } from './slides/slides.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { UserAddressModule } from './user-address/user-address.module';
 
 
  
 @Module({
-  imports: [AuthModule, CategoryModule, ProductModule, ReviewModule, PrismaModule, CloudinaryModule, ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env', }), CartModule, OrderModule, ProfileModule, StripeModule, SlidesModule, AnalyticsModule],
+  imports: [AuthModule, CategoryModule, ProductModule, ReviewModule, PrismaModule, CloudinaryModule, ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env', }), CartModule, OrderModule, ProfileModule, StripeModule, SlidesModule, AnalyticsModule, UserAddressModule],
   controllers: [],
   providers: [],
 })

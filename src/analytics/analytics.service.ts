@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+
+const REVENUE_STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+
+
 @Injectable()
 export class AnalyticsService {
     constructor(private readonly prisma: PrismaService) { }
@@ -8,6 +12,7 @@ export class AnalyticsService {
     // ═══════════════════════════════════════════════════════════
     // STAT CARDS — total revenue, orders, products, users
     // ═══════════════════════════════════════════════════════════
+
     async getStats() {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -19,35 +24,59 @@ export class AnalyticsService {
             lastMonthRevenue,
             totalOrders,
             lastMonthOrders,
+            cancelledThisMonth,
+            cancelledLastMonth,
             totalProducts,
             lastMonthProducts,
             totalUsers,
             lastMonthUsers,
         ] = await Promise.all([
-            // Total revenue (all time)
+
+            // Revenue — CANCELLED বাদ
             this.prisma.order.aggregate({
                 _sum: { totalPrice: true },
+                where: { status: { in: REVENUE_STATUSES as any } },
             }),
-            // Last month revenue
+
+            // Last month revenue — CANCELLED বাদ
             this.prisma.order.aggregate({
                 _sum: { totalPrice: true },
-                where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+                where: {
+                    status: { in: REVENUE_STATUSES as any },
+                    createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+                },
             }),
-            // Total orders
+
+            // Total orders — all statuses
             this.prisma.order.count(),
-            // Last month orders
+
+            // Last month total orders
             this.prisma.order.count({
                 where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
             }),
-            // Total products
+
+            // Cancelled this month
+            this.prisma.order.count({
+                where: {
+                    status: 'CANCELLED',
+                    createdAt: { gte: startOfMonth },
+                },
+            }),
+
+            // Cancelled last month
+            this.prisma.order.count({
+                where: {
+                    status: 'CANCELLED',
+                    createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+                },
+            }),
+
             this.prisma.product.count(),
-            // Last month products added
             this.prisma.product.count({
                 where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
             }),
-            // Total users
+
             this.prisma.user.count(),
-            // Last month new users
             this.prisma.user.count({
                 where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
             }),
@@ -61,6 +90,11 @@ export class AnalyticsService {
             orders: {
                 total: totalOrders,
                 lastMonth: lastMonthOrders,
+            },
+            // New — cancelled orders this month vs last month
+            cancelled: {
+                thisMonth: cancelledThisMonth,
+                lastMonth: cancelledLastMonth,
             },
             products: {
                 total: totalProducts,
@@ -76,7 +110,6 @@ export class AnalyticsService {
 
 
 
-
     // ═══════════════════════════════════════════════════════════
     // ANALYTICS CHART — daily revenue, orders, visitors (users)
     // Query param: days (7 | 14 | 30 | 90)
@@ -86,77 +119,70 @@ export class AnalyticsService {
         from.setDate(from.getDate() - days);
         from.setHours(0, 0, 0, 0);
 
-        // Fetch all orders in range with createdAt
         const orders = await this.prisma.order.findMany({
             where: { createdAt: { gte: from } },
-            select: { createdAt: true, totalPrice: true },
+            select: { createdAt: true, totalPrice: true, userId: true, status: true },
         });
 
-        // Fetch all new users in range
-        const users = await this.prisma.user.findMany({
-            where: { createdAt: { gte: from } },
-            select: { createdAt: true },
-        });
+        const map: Record<string, {
+            revenue: number;
+            orders: number;
+            cancelled: number;
+            visitorSet: Set<string>;
+        }> = {};
 
-        // Build a map keyed by date string "YYYY-MM-DD"
-        const map: Record<string, { revenue: number; orders: number; visitors: number }> = {};
-
-        // Initialize all days in range with zero values
         for (let i = days - 1; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            const key = d.toISOString().split('T')[0];
-            map[key] = { revenue: 0, orders: 0, visitors: 0 };
+            map[d.toISOString().split('T')[0]] = {
+                revenue: 0, orders: 0, cancelled: 0, visitorSet: new Set(),
+            };
         }
 
-        // Aggregate orders per day
         for (const order of orders) {
             const key = order.createdAt.toISOString().split('T')[0];
-            if (map[key]) {
-                map[key].revenue += Number(order.totalPrice);
-                map[key].orders += 1;
+            if (!map[key]) continue;
+
+            map[key].orders += 1;
+            map[key].visitorSet.add(order.userId);
+
+            if (order.status === 'CANCELLED') {
+                map[key].cancelled += 1;
+            } else {
+                // Only non-cancelled orders contribute to revenue
+                map[key].revenue += parseFloat(order.totalPrice.toString());
             }
         }
 
-        // Aggregate new users per day as "visitors"
-        for (const user of users) {
-            const key = user.createdAt.toISOString().split('T')[0];
-            if (map[key]) map[key].visitors += 1;
-        }
-
-        // Convert map to sorted array with a readable label
         return Object.entries(map).map(([date, values]) => {
             const d = new Date(date);
-            const label =
-                days <= 7
-                    ? d.toLocaleDateString('en', { weekday: 'short' })
-                    : d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+            const label = days <= 7
+                ? d.toLocaleDateString('en', { weekday: 'short' })
+                : d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
 
-            return { date, label, ...values };
+            return {
+                date,
+                label,
+                revenue: Math.round(values.revenue * 100) / 100,
+                orders: values.orders,
+                cancelled: values.cancelled,
+                visitors: values.visitorSet.size,
+            };
         });
     }
-
-
-
-
-
 
 
 
     // ═══════════════════════════════════════════════════════════
     // SALES BY CATEGORY — for pie chart
     // ═══════════════════════════════════════════════════════════
+
     async getCategoryBreakdown() {
-        // Sum order item prices grouped by product category
         const orderItems = await this.prisma.orderItem.findMany({
+            where: { order: { status: { in: REVENUE_STATUSES as any } } },
             select: {
-                price: true,
-                quantity: true,
-                product: {
-                    select: {
-                        categories: { select: { name: true } },
-                    },
-                },
+                price: true, quantity: true,
+                product: { select: { categories: { select: { name: true } } } },
             },
         });
 
@@ -165,7 +191,6 @@ export class AnalyticsService {
         for (const item of orderItems) {
             const revenue = Number(item.price) * item.quantity;
             const cats = item.product.categories;
-
             if (cats.length === 0) {
                 categoryRevenue['Uncategorized'] = (categoryRevenue['Uncategorized'] ?? 0) + revenue;
             } else {
@@ -176,8 +201,6 @@ export class AnalyticsService {
         }
 
         const total = Object.values(categoryRevenue).reduce((a, b) => a + b, 0);
-
-        // Sort by revenue desc, return percentage
         return Object.entries(categoryRevenue)
             .sort(([, a], [, b]) => b - a)
             .map(([name, revenue]) => ({
@@ -190,24 +213,19 @@ export class AnalyticsService {
 
 
 
-
-
-
-
-
-
     // ═══════════════════════════════════════════════════════════
     // TOP PRODUCTS — by sales volume
     // ═══════════════════════════════════════════════════════════
+
     async getTopProducts(limit = 5) {
         const products = await this.prisma.orderItem.groupBy({
             by: ['productId'],
+            where: { order: { status: { in: REVENUE_STATUSES as any } } },
             _sum: { quantity: true, price: true },
             orderBy: { _sum: { quantity: 'desc' } },
             take: limit,
         });
 
-        // Fetch product names
         const productIds = products.map((p) => p.productId);
         const productDetails = await this.prisma.product.findMany({
             where: { id: { in: productIds } },
@@ -221,14 +239,9 @@ export class AnalyticsService {
             name: nameMap[p.productId] ?? 'Unknown',
             sales: p._sum.quantity ?? 0,
             revenue: `$${Number(p._sum.price ?? 0).toLocaleString()}`,
-            // Percentage relative to the top product
             pct: Math.round(((p._sum.quantity ?? 0) / maxSales) * 100),
         }));
     }
-
-
-
-
 
 
 
@@ -274,8 +287,6 @@ export class AnalyticsService {
             };
         });
     }
-
-
 
 
 
