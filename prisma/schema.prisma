@@ -8,11 +8,19 @@ datasource db {
   provider = "postgresql"
 }
 
-// model User {
-//   id       Int    @id @default(autoincrement())
-//   email    String @unique
-//   password String
-// }
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  MODERATOR
+}
 
 model User {
   id        String   @id @default(uuid())
@@ -89,13 +97,7 @@ model Order {
   state       String?
   zipCode     String?
   country     String?
-
- 
 }
-
-
-
-
 
 model UserAddress {
   id          String   @id @default(uuid())
@@ -112,9 +114,6 @@ model UserAddress {
   isDefault   Boolean  @default(false)
   createdAt   DateTime @default(now())
 }
-
-
-
 
 model Product {
   id            String   @id @default(uuid())
