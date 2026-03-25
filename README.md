@@ -20,10 +20,7 @@ The backend server for **Sellify**, a full-stack e-commerce platform. Built with
 -  **Reviews & Ratings** — Product reviews by verified buyers
 -  **Stripe Payment** — Secure payment processing
 -  **Cloudinary Upload** — Product image uploads
-<<<<<<< HEAD
-=======
--  **Admin Routes** — Manage products and orders
->>>>>>> dev
+-  **Admin Dashboard** — Manage products and orders
 
 ---
 
@@ -113,6 +110,7 @@ Server will run on `http://localhost:4000`
 ## 🔗 Related Repository
 
 - **Frontend (Next.js):** [sellify](https://github.com/tamjidahmed0/sellify)
+- **Admin Dashboard (React.js):** [sellify-admin](https://github.com/tamjidahmed0/sellify-admin)
 
 
 
