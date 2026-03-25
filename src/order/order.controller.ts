@@ -51,6 +51,7 @@ export class OrderController {
         @Param('id') id: string,
         @Body() dto,
     ) {
+        console.log(dto)
         return this.order.updateOrderStatus(id, dto.status);
     }
 

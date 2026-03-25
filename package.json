@@ -19,7 +19,6 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "create-user": "npx tsx src/scripts/create-user.ts"
-
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -30,6 +29,8 @@
     "@nestjs/platform-express": "^11.1.13",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.4.1",
+    "@sentry/nestjs": "^8.55.1",
+    "@sentry/profiling-node": "^10.45.0",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
