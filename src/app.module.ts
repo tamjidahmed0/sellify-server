@@ -13,12 +13,19 @@ import { StripeModule } from './stripe/stripe.module';
 import { SlidesModule } from './slides/slides.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { UserAddressModule } from './user-address/user-address.module';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { APP_FILTER } from '@nestjs/core';
 
 
  
 @Module({
-  imports: [AuthModule, CategoryModule, ProductModule, ReviewModule, PrismaModule, CloudinaryModule, ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env', }), CartModule, OrderModule, ProfileModule, StripeModule, SlidesModule, AnalyticsModule, UserAddressModule],
+  imports: [AuthModule, CategoryModule, ProductModule, ReviewModule, PrismaModule, CloudinaryModule, ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env', }), CartModule, OrderModule, ProfileModule, StripeModule, SlidesModule, AnalyticsModule, UserAddressModule, SentryModule.forRoot()],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter
+    }
+  ],
 })
 export class AppModule { }

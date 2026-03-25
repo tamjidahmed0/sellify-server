@@ -20,6 +20,10 @@ The backend server for **Sellify**, a full-stack e-commerce platform. Built with
 -  **Reviews & Ratings** — Product reviews by verified buyers
 -  **Stripe Payment** — Secure payment processing
 -  **Cloudinary Upload** — Product image uploads
+<<<<<<< HEAD
+=======
+-  **Admin Routes** — Manage products and orders
+>>>>>>> dev
 
 ---
 
@@ -79,8 +83,11 @@ GOOGLE_CALLBACK_URL = http://localhost:4000/auth/google/callback
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_webhook_secret
 
+
+
 FRONTEND_URL = http://localhost:3000
 
+SENTRY_DSN = your sentry dsn
 
 ```
 
